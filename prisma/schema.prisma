@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum BookedOffBy {
+  TUTOR
+  STUDENT
+  NONE
+}
+
+enum ClassMode {
+  ONLINE
+  IN_PERSON
+}
+
+model tutor {
+  id               String                @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  bookedOffAt      DateTime? // Track when a tutor was last booked off
+  contact          String?
+  archived         Boolean               @default(false) // New field to archive a tutor
+  // Relations
+  students         TutorStudent[] // Relation with students via TutorStudent
+  scheduledClasses TutorScheduledClass[] // Explicit many-to-many relation with ScheduledClass
+  courses          TutorCourse[] // Explicit many-to-many relation with course through TutorCourse
+}
+
+model student {
+  id               String                  @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  grade            Int?
+  bookedOffAt      DateTime? // Track when a student was last booked off
+  contact          String?
+  archived         Boolean                 @default(false) // New field to archive a student
+  // Relations
+  tutors           TutorStudent[] // Relation with tutors via TutorStudent
+  scheduledClasses StudentScheduledClass[] // Explicit many-to-many relation with ScheduledClass
+  courses          StudentCourse[] // Explicit many-to-many relation with course through StudentCourse
+}
+
+enum BookedOffReason {
+  SICK
+  CANT_MAKE_IT
+  OTHER
+}
+
+model ScheduledClass {
+  id                   String                  @id @default(auto()) @map("_id") @db.ObjectId
+  classDatestart       DateTime
+  classDateend         DateTime
+  bookedOffBy          BookedOffBy             @default(NONE)
+  bookedOffByName      String? // Store the name of who booked off
+  bookedOffAt          DateTime?
+  classMode            ClassMode               @default(IN_PERSON) // New field to indicate class mode
+  tutors               TutorScheduledClass[]
+  students             StudentScheduledClass[]
+  courseId             String?                 @db.ObjectId
+  courseNames          String[] // Store the course name
+  tutorNames           String[] // Store an array of tutor names
+  studentNames         String[] // Store an array of student names
+  capacity             Int                     @default(4)
+  currentEnrollment    Int                     @default(0)
+  course               course?                 @relation(fields: [courseId], references: [id])
+  bookedOffReason      BookedOffReason? // New enum for booked off reason
+  bookedOffDescription String? // Optionally provide further description
+}
+
+model course {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  grade      String?
+  subject    String?
+  courseName String?
+
+  // Relations
+  tutors           TutorCourse[] // Explicit many-to-many relation with tutor through TutorCourse
+  students         StudentCourse[] // Explicit many-to-many relation with student through StudentCourse
+  scheduledClasses ScheduledClass[] // One-to-many with ScheduledClass
+}
+
+model TutorScheduledClass {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId          String @db.ObjectId
+  scheduledClassId String @db.ObjectId
+
+  tutor          tutor          @relation(fields: [tutorId], references: [id])
+  scheduledClass ScheduledClass @relation(fields: [scheduledClassId], references: [id])
+}
+
+model StudentScheduledClass {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId        String @db.ObjectId
+  scheduledClassId String @db.ObjectId
+
+  student        student        @relation(fields: [studentId], references: [id])
+  scheduledClass ScheduledClass @relation(fields: [scheduledClassId], references: [id])
+}
+
+// Join table for many-to-many relation between tutor and course
+model TutorCourse {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId  String @db.ObjectId
+  courseId String @db.ObjectId
+
+  tutor  tutor  @relation(fields: [tutorId], references: [id])
+  course course @relation(fields: [courseId], references: [id])
+}
+
+// Join table for many-to-many relation between student and course
+model StudentCourse {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String @db.ObjectId
+  courseId  String @db.ObjectId
+
+  student student @relation(fields: [studentId], references: [id])
+  course  course  @relation(fields: [courseId], references: [id])
+}
+
+// Join table for many-to-many relation between tutor and student
+model TutorStudent {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId   String @db.ObjectId
+  studentId String @db.ObjectId
+
+  tutor   tutor   @relation(fields: [tutorId], references: [id])
+  student student @relation(fields: [studentId], references: [id])
+}
