@@ -6,14 +6,18 @@ const MAX_CAPACITY = 4; // Maximum capacity for a class
 export const POST = async (req) => {
     try {
         const body = await req.json();
-        const { classDatestart, classDateend, status, tutorIds = [], studentIds = [], courseIds = [], classMode } = body;
-
+        const {
+            classDatestart,
+            classDateend,
+            tutorIds = [],
+            studentIds = [],
+            courseIds = [],
+            classMode,
+            currentEnrollment // Add this to extract from the body
+        } = body;
         console.log("Received data:", body);
 
         // Validate that status is provided and is valid
-        if (!status || !['BOOKED_OFF', 'NOT_BOOKED_OFF'].includes(status)) {
-            throw new Error("Invalid or missing status value.");
-        }
 
         // Validate and format classDatestart and classDateend
         const formattedClassDatestart = new Date(classDatestart).toISOString();
@@ -60,28 +64,25 @@ export const POST = async (req) => {
             data: {
                 classDatestart: formattedClassDatestart,
                 classDateend: formattedClassDateend,
-                classMode, // Add the classMode field
-                courseNames, // Store the course names as an array
-                tutorNames, // Store tutor names as an array
-                studentNames, // Store student names as an array
-                currentEnrollment: studentIds.length, // Track the number of students enrolled
-                capacity: MAX_CAPACITY, // Store the benchmark capacity for reference
+                classMode,
+                tutorNames: tutorNames,
+                studentNames: studentNames,
+                courseNames: courseNames,
+                currentEnrollment,
+                capacity: 4,
                 tutors: {
                     create: tutorIds.map(tutorId => ({
-                        tutor: {
-                            connect: { id: tutorId },
-                        },
+                        tutor: { connect: { id: tutorId } },
                     })),
                 },
                 students: {
                     create: studentIds.map(studentId => ({
-                        student: {
-                            connect: { id: studentId },
-                        },
+                        student: { connect: { id: studentId } },
                     })),
                 },
             },
         });
+
 
         console.log("Created scheduled class:", newScheduledClass);
 

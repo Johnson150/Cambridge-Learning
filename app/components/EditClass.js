@@ -208,7 +208,6 @@ const EditClass = ({ showModal, setShowModal, refreshClasses, classDetails }) =>
                 body: JSON.stringify({
                     classDatestart: formState.classDatestart,
                     classDateend: formState.classDateend,
-                    status: formState.status,
                     bookedOffBy: bookedOffByValue,
                     bookedOffByName,
                     tutorNames: formState.selectedTutors,
