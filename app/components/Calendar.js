@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
@@ -92,6 +93,9 @@ const CalendarComponent = () => {
         }
     };
 
+    // Business hours - only Friday, Monday, Wednesday, and Saturday are open
+    const openDays = ["Friday", "Monday", "Wednesday", "Saturday"];
+
     const eventPropGetter = (event) => {
         const backgroundColor =
             event.status === "BOOKED_OFF" ? "#6b7280" : "#3b82f6";
@@ -105,6 +109,23 @@ const CalendarComponent = () => {
                 overflow: "hidden",
             },
         };
+    };
+
+    const slotPropGetter = (date) => {
+        const dayName = moment(date).format("dddd");
+        if (!openDays.includes(dayName)) {
+            return {
+                className: "bg-red-500 text-white opacity-75", // Closed days
+                style: {
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                },
+            };
+        } else {
+            return {
+                className: "bg-white text-black", // Open days
+            };
+        }
     };
 
     const availableHours = (date) => {
@@ -186,58 +207,53 @@ const CalendarComponent = () => {
         );
     };
 
-
-
-
-
     return (
-        <div>
-            <div className="flex flex-col items-center justify-center h-screen">
-                <div className="flex justify-between w-full">
-                    <Toolbar
-                        date={currentDate}
-                        view={currentView}
-                        onNavigate={handleNavigate}
-                        onViewChange={setCurrentView}
-                        events={events}
-                    />
-                </div>
-                <div className="w-full p-4">
-                    <Calendar
-                        localizer={localizer}
-                        view={currentView}
-                        views={["month", "week", "day"]}
-                        date={currentDate}
-                        events={events}
-                        components={{
-                            event: EventComponent,
-                        }}
-                        style={{ height: "75vh", width: "100%" }}
-                        toolbar={false}
-                        onNavigate={handleNavigate}
-                        onSelectSlot={handleSelectSlot}
-                        onSelectEvent={handleSelectEvent}
-                        selectable
-                        eventPropGetter={eventPropGetter}
-                        min={min}
-                        max={max}
-                    />
-                </div>
-                <AddClass
-                    showModal={showAddClassModal}
-                    setShowModal={setShowAddClassModal}
-                    refreshClasses={refreshClasses}
-                    startTime={selectedClassTimes.startTime}
+        <div className="flex flex-col items-center justify-center h-screen">
+            <div className="flex justify-between w-full">
+                <Toolbar
+                    date={currentDate}
+                    view={currentView}
+                    onNavigate={handleNavigate}
+                    onViewChange={setCurrentView}
+                    events={events}
                 />
-                {selectedEvent && (
-                    <EditClass
-                        showModal={showEditClassModal}
-                        setShowModal={setShowEditClassModal}
-                        refreshClasses={refreshClasses}
-                        classDetails={selectedEvent}
-                    />
-                )}
             </div>
+            <div className="w-full p-4">
+                <Calendar
+                    localizer={localizer}
+                    view={currentView}
+                    views={["month", "week", "day"]}
+                    date={currentDate}
+                    events={events}
+                    components={{
+                        event: EventComponent,
+                    }}
+                    style={{ height: "75vh", width: "100%" }}
+                    toolbar={false}
+                    onNavigate={handleNavigate}
+                    onSelectSlot={handleSelectSlot}
+                    onSelectEvent={handleSelectEvent}
+                    selectable
+                    eventPropGetter={eventPropGetter}
+                    slotPropGetter={slotPropGetter}
+                    min={min}
+                    max={max}
+                />
+            </div>
+            <AddClass
+                showModal={showAddClassModal}
+                setShowModal={setShowAddClassModal}
+                refreshClasses={refreshClasses}
+                startTime={selectedClassTimes.startTime}
+            />
+            {selectedEvent && (
+                <EditClass
+                    showModal={showEditClassModal}
+                    setShowModal={setShowEditClassModal}
+                    refreshClasses={refreshClasses}
+                    classDetails={selectedEvent}
+                />
+            )}
         </div>
     );
 };

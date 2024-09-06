@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AddStudent from '@/app/components/AddStudent'; // Assuming you have an AddStudent component similar to AddTutor
+import AddStudent from '@/app/components/AddStudent';
 import Modal from '@/app/components/Modal';
 
 const StudentList = () => {
@@ -12,7 +12,8 @@ const StudentList = () => {
     const [selectedCourses, setSelectedCourses] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
-    const [showArchived, setShowArchived] = useState(false); // New state for toggling archived view
+    const [showArchived, setShowArchived] = useState(false); // State for toggling archived view
+    const [searchTerm, setSearchTerm] = useState(""); // New state for search input
 
     const fetchStudents = async () => {
         try {
@@ -71,7 +72,6 @@ const StudentList = () => {
             if (!response.ok) {
                 throw new Error("Failed to update student");
             }
-            // Refresh the students list to reflect changes
             setRefreshKey((prevKey) => prevKey + 1);
         } catch (error) {
             setError(error.message);
@@ -126,6 +126,15 @@ const StudentList = () => {
         }
     };
 
+    // Filtering students based on the search term
+    const filteredStudents = students.filter((student) => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            student.name.toLowerCase().includes(searchLower) ||
+            (student.grade && student.grade.toString().includes(searchLower)) ||
+            (student.courses && student.courses.some((sc) => sc.course.courseName.toLowerCase().includes(searchLower)))
+        );
+    });
 
     return (
         <div className="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow-md">
@@ -137,6 +146,17 @@ const StudentList = () => {
                 {showArchived ? "Archive Students List" : "Active Students List"}
             </h2>
 
+            {/* Search Bar */}
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search by name, grade, or course"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="px-4 py-2 w-full border border-gray-300 rounded-md"
+                />
+            </div>
+
             {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
             <div className="flex justify-end mb-4">
                 <button
@@ -146,7 +166,7 @@ const StudentList = () => {
                     {showArchived ? "Show Active Students" : "Show Archived Students"}
                 </button>
             </div>
-            {students.length === 0 ? (
+            {filteredStudents.length === 0 ? (
                 <p className="text-gray-700 text-center">No students available.</p>
             ) : (
                 <div className="overflow-x-auto">
@@ -157,18 +177,18 @@ const StudentList = () => {
                                     <tr>
                                         <th className="py-2 px-4 border-b">Name</th>
                                         <th className="py-2 px-4 border-b">Contact</th>
-                                        <th className="py-2 px-4 border-b">Grade</th> {/* Add grade header */}
+                                        <th className="py-2 px-4 border-b">Grade</th>
                                         <th className="py-2 px-4 border-b">Courses</th>
                                         <th className="py-2 px-4 border-b">Status</th>
                                         <th className="py-2 px-4 border-b">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {students.map((student) => (
+                                    {filteredStudents.map((student) => (
                                         <tr key={student.id}>
                                             <td className="py-2 px-4 border-b">{student.name}</td>
                                             <td className="py-2 px-4 border-b">{student.contact}</td>
-                                            <td className="py-2 px-4 border-b">{student.grade || "N/A"}</td> {/* Display grade */}
+                                            <td className="py-2 px-4 border-b">{student.grade || "N/A"}</td>
                                             <td className="py-2 px-4 border-b">
                                                 {student.courses && student.courses.length > 0 ? (
                                                     student.courses.map((sc, index) => (
