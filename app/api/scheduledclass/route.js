@@ -60,7 +60,6 @@ export const POST = async (req) => {
             data: {
                 classDatestart: formattedClassDatestart,
                 classDateend: formattedClassDateend,
-                status,
                 classMode, // Add the classMode field
                 courseNames, // Store the course names as an array
                 tutorNames, // Store tutor names as an array
