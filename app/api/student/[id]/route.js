@@ -52,6 +52,7 @@ export const PATCH = async (req, { params }) => {
             tutorIds = [],
             scheduledClassIds = [],
             archived,
+            grade,  // Include grade in the request body
         } = body;
 
         console.log("Received data for update:", body);
@@ -61,6 +62,7 @@ export const PATCH = async (req, { params }) => {
             ...(name !== undefined && { name }),
             ...(contact !== undefined && { contact }),
             ...(archived !== undefined && { archived }),
+            ...(grade !== undefined && { grade }),  // Add grade to the update data
         };
 
         // Fetch the current student details
@@ -131,7 +133,7 @@ export const PATCH = async (req, { params }) => {
             });
         }
 
-        // Update the student with the remaining data (name, contact, archived)
+        // Update the student with the remaining data (name, contact, grade, archived)
         const updatedStudent = await client.student.update({
             where: { id },
             data: updateData,
@@ -151,7 +153,7 @@ export const PATCH = async (req, { params }) => {
     } catch (error) {
         console.error("Error updating student:", error.message);
 
-        // Log additional information if it's a prisma error
+        // Log additional information if it's a Prisma error
         if (error.meta && error.meta.cause) {
             console.error("Prisma error cause:", error.meta.cause);
         }

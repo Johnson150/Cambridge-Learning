@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export const POST = async (req) => {
     try {
         const body = await req.json();
-        const { name, contact, tutorIds = [], scheduledClassIds = [], courseIds = [] } = body;
+        const { name, contact, grade, tutorIds = [], scheduledClassIds = [], courseIds = [] } = body;
 
         console.log("Received data:", body);
 
@@ -24,6 +24,7 @@ export const POST = async (req) => {
             data: {
                 name,
                 contact,
+                grade: parseInt(grade),
                 // Conditionally connect tutors if any
                 ...(tutorIds.length > 0 && {
                     tutors: {
@@ -91,6 +92,7 @@ export const GET = async (req) => {
                     id: true,
                     name: true,
                     contact: true,
+                    grade: true, // Include grade in the select statement
                     archived: true,
                     tutors: {
                         select: {
@@ -137,6 +139,7 @@ export const GET = async (req) => {
                     id: true,
                     name: true,
                     contact: true,
+                    grade: true, // Include grade in the select statement
                     archived: true,
                     tutors: {
                         select: {
@@ -177,6 +180,7 @@ export const GET = async (req) => {
                     id: true,
                     name: true,
                     contact: true,
+                    grade: true, // Include grade in the select statement
                     archived: true,
                     tutors: {
                         select: {
@@ -221,4 +225,5 @@ export const GET = async (req) => {
         );
     }
 };
+
 
